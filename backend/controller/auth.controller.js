@@ -27,9 +27,9 @@ export const signup = async (req, res, next) => {
   //   check user role
   let role = "user"
 
-  if (adminJoinCode && adminJoinCode === process.env.ADMIN_JOIN_CODE) {
-    role = "admin"
-  }
+  if (adminJoinCode === process.env.ADMIN_JOIN_CODE) {
+  role = "admin"
+}
 
   const hashedPassword = bcryptjs.hashSync(password, 10)
 

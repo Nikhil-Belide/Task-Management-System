@@ -55,7 +55,8 @@ const SignUp = () => {
         email,
         password,
         profileImageUrl,
-        adminJoinCode: adminInviteToken,
+        adminJoinCode: adminInviteToken
+        
       })
 
       if (response.data) {

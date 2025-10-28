@@ -8,18 +8,22 @@ const SelectedUsers = ({ selectedUser, setSelectedUser }) => {
   const [allUsers, setAllUsers] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [tempSelectedUser, setTempSelectedUser] = useState([])
-
-  // console.log(allUsers)
+  const [loading, setLoading] = useState(false)
 
   const getAllUsers = async () => {
     try {
+      setLoading(true)
       const response = await axiosInstance.get("/users/get-users")
+
+      console.log("Users response:", response.data)
 
       if (response.data?.length > 0) {
         setAllUsers(response.data)
       }
     } catch (error) {
       console.log("Error fetching users:", error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -32,27 +36,42 @@ const SelectedUsers = ({ selectedUser, setSelectedUser }) => {
   }
 
   const handleAssign = () => {
-    setSelectedUser(tempSelectedUser)
+    // Convert IDs back to user objects
+    const selectedUserObjects = allUsers.filter(user => 
+      tempSelectedUser.includes(user._id)
+    )
+    setSelectedUser(selectedUserObjects)
     setIsModalOpen(false)
   }
 
-  const selectedUserAvatars = allUsers
-    .filter((user) => selectedUser.includes(user._id))
-    .map((user) => user.profileImageUrl)
+  // Extract user IDs and profile images from selectedUser (which contains objects)
+  const selectedUserIds = selectedUser.map(user => 
+    typeof user === 'string' ? user : user._id
+  )
+
+  const selectedUserAvatars = selectedUser
+    .map(user => typeof user === 'string' 
+      ? allUsers.find(u => u._id === user)?.profileImageUrl 
+      : user.profileImageUrl
+    )
+    .filter(Boolean)
 
   useEffect(() => {
     getAllUsers()
-
-    return () => {}
   }, [])
 
   useEffect(() => {
     if (selectedUser.length === 0) {
       setTempSelectedUser([])
     }
-
-    return () => {}
   }, [selectedUser])
+
+  // Sync tempSelectedUser when modal opens
+  useEffect(() => {
+    if (isModalOpen) {
+      setTempSelectedUser(selectedUserIds)
+    }
+  }, [isModalOpen])
 
   return (
     <div className="space-y-4 mt-2">
@@ -78,7 +97,19 @@ const SelectedUsers = ({ selectedUser, setSelectedUser }) => {
         title={"Select User"}
       >
         <div className="space-y-4 h-[60vh] overflow-y-auto">
-          {allUsers?.map((user) => (
+          {loading && (
+            <div className="flex justify-center items-center h-full">
+              <p className="text-gray-500">Loading users...</p>
+            </div>
+          )}
+
+          {!loading && allUsers.length === 0 && (
+            <div className="flex justify-center items-center h-full">
+              <p className="text-gray-500">No users found</p>
+            </div>
+          )}
+
+          {!loading && allUsers?.map((user) => (
             <div
               key={user._id}
               className="flex items-center gap-4 p-3 border-b border-gray-300"
@@ -86,12 +117,11 @@ const SelectedUsers = ({ selectedUser, setSelectedUser }) => {
               <img
                 src={user?.profileImageUrl}
                 alt={user?.name}
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full object-cover"
               />
 
               <div className="flex-1">
                 <p className="font-medium text-gray-800">{user?.name}</p>
-
                 <p className="text-[13px] text-gray-500">{user?.email}</p>
               </div>
 

@@ -66,10 +66,11 @@ const CreateTask = () => {
       }))
 
       const response = await axiosInstance.post("/tasks/create", {
-        ...taskData,
-        dueDate: new Date(taskData.dueDate).toISOString(),
-        todoChecklist: todolist,
-      })
+  ...taskData,
+  assignedTo: taskData.assignedTo.map(user => user._id || user), // Extract IDs
+  dueDate: new Date(taskData.dueDate).toISOString(),
+  todoChecklist: todolist,
+})
 
       toast.success("Task created successfully!")
 
@@ -95,11 +96,12 @@ const CreateTask = () => {
         }
       })
 
-      const response = await axiosInstance.put(`/tasks/${taskId}`, {
-        ...taskData,
-        dueDate: new Date(taskData.dueDate).toISOString(),
-        todoChecklist: todolist,
-      })
+     const response = await axiosInstance.put(`/tasks/${taskId}`, {
+  ...taskData,
+  assignedTo: taskData.assignedTo.map(user => user._id || user), // Extract IDs
+  dueDate: new Date(taskData.dueDate).toISOString(),
+  todoChecklist: todolist,
+})
 
       toast.success("Task updated successfully!")
 
@@ -152,10 +154,11 @@ const CreateTask = () => {
     try {
       const response = await axiosInstance.get(`/tasks/${taskId}`)
 
-      if (response.data) {
-        const taskInfo = response.data
-        setCurrentTask(taskInfo)
-
+     if (response.data) {
+  const taskInfo = response.data
+  console.log("Full task response:", taskInfo)
+  console.log("assignedTo from API:", taskInfo?.assignedTo)
+  setCurrentTask(taskInfo)
         setTaskData((prevState) => ({
           ...prevState,
           title: taskInfo?.title,
@@ -164,7 +167,8 @@ const CreateTask = () => {
           dueDate: taskInfo?.dueDate
             ? moment(taskInfo?.dueDate).format("YYYY-MM-DD")
             : null,
-          assignedTo: taskInfo?.assignedTo?.map((item) => item?._id || []),
+          assignedTo: taskInfo?.assignedTo || [],
+          
           todoChecklist:
             taskInfo?.todoChecklist?.map((item) => item?.text) || [],
           attachments: taskInfo?.attachments || [],
