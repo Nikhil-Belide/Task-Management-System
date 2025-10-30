@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: task-manager-backend
+    env: node
+    repo: https://github.com/Nikhil-Belide/Task-Management-System
+    branch: main
+    plan: free
+    buildCommand: cd backend && npm ci
+    startCommand: cd backend && node index.js
+    envVars:
+      - key: PORT
+        value: 10000
+
+  - type: static
+    name: task-manager-frontend
+    env: static
+    repo: https://github.com/Nikhil-Belide/Task-Management-System
+    branch: main
+    plan: free
+    buildCommand: cd frontend && npm ci && npm run build
+    publishPath: frontend/dist
+
+# Notes:
+# - This blueprint gives Render enough information to create two services:
+#   1) a Node web service for the backend (starts with `node index.js` in backend/)
+#   2) a static site for the frontend (builds with npm run build in frontend/ and publishes `frontend/dist`).
+# - Environment variables and secrets (DB URI, JWT_SECRET, etc.) should be configured in the Render dashboard or using the Render CLI — do not keep secrets in the repo.
